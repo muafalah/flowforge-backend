@@ -45,6 +45,8 @@ jobs:
 
     - name: Generate Prisma Client
       run: npx prisma generate
+      env:
+        DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
 
     - name: Push Database Schema
       run: npx prisma db push
