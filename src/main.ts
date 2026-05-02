@@ -12,7 +12,9 @@ async function bootstrap() {
   // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('Flowforge API')
-    .setDescription('The Flowforge workflow orchestration engine API documentation')
+    .setDescription(
+      'The Flowforge workflow orchestration engine API documentation',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -20,10 +22,10 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   const configService = app.get(ConfigService);
-  const port = configService.get('PORT') || 3000;
-  
+  const port = configService.get<number>('PORT') || 3000;
+
   await app.listen(port);
   console.log(`Application is running on: ${await app.getUrl()}`);
   console.log(`Swagger documentation available at: ${await app.getUrl()}/api`);
 }
-bootstrap();
+void bootstrap();
