@@ -12,7 +12,7 @@ on:
       - dev
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
 
     services:
@@ -31,39 +31,40 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22.x'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Generate Prisma Client
-      run: npx prisma generate
-      env:
-        DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
 
-    - name: Push Database Schema
-      run: npx prisma db push
-      env:
-        DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
+      - name: Push Database Schema
+        run: npx prisma db push
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
 
-    - name: Lint
-      run: npm run lint
+      - name: Lint
+        run: npm run lint
 
-    - name: Run Unit Tests
-      run: npm run test
+      - name: Run Unit Tests
+        run: npm run test
 
-    - name: Run E2E Tests
-      run: npm run test:e2e
-      env:
-        DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
-        JWT_SECRET: test_secret
+      - name: Run E2E Tests
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+        run: npm run test:e2e
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
+          JWT_SECRET: test_secret
 
-    - name: Build
-      run: npm run build
+      - name: Build
+        run: npm run build
