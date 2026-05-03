@@ -230,14 +230,30 @@ export class AuthService {
     };
   }
 
-  getProfile(user: RequestUser) {
+  async getProfile(user: RequestUser) {
+    const dbUser = await this.prisma.user.findUnique({
+      where: { id: user.userId, deletedAt: null },
+    });
+
+    if (!dbUser) {
+      throw new HttpException(
+        {
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'User not found.',
+          },
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     return {
       message: 'User retrieved successfully.',
       data: {
         user: {
-          id: user.userId,
-          name: user.name,
-          email: user.email,
+          id: dbUser.id,
+          name: dbUser.name,
+          email: dbUser.email,
         },
       },
     };

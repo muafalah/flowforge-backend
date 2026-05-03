@@ -367,14 +367,20 @@ describe('AuthService', () => {
   });
 
   describe('getProfile', () => {
-    it('should return user profile from request user', () => {
+    it('should return user profile from request user', async () => {
       const requestUser = {
         userId: 'test-uuid',
         name: 'John Doe',
         email: 'john@email.com',
       };
 
-      const result = service.getProfile(requestUser);
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        id: 'test-uuid',
+        name: 'John Doe',
+        email: 'john@email.com',
+      });
+
+      const result = await service.getProfile(requestUser);
 
       expect(result).toEqual({
         message: 'User retrieved successfully.',
@@ -386,6 +392,27 @@ describe('AuthService', () => {
           },
         },
       });
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 'test-uuid', deletedAt: null },
+      });
+    });
+
+    it('should throw USER_NOT_FOUND if user does not exist in db', async () => {
+      const requestUser = {
+        userId: 'test-uuid',
+        name: 'John Doe',
+        email: 'john@email.com',
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      try {
+        await service.getProfile(requestUser);
+      } catch (error) {
+        expect(error).toBeInstanceOf(HttpException);
+        const httpError = error as HttpException;
+        expect(httpError.getStatus()).toBe(HttpStatus.NOT_FOUND);
+      }
     });
   });
 });

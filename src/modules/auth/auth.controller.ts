@@ -8,6 +8,7 @@ import {
   UsePipes,
   HttpCode,
   HttpStatus,
+  Header,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -195,6 +196,7 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @Header('Cache-Control', 'no-store, no-cache, must-revalidate')
   @ApiOperation({ summary: 'Get current authenticated user profile' })
   @ApiResponse({
     status: 200,

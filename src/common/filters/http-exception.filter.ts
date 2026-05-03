@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { Prisma } from '@prisma/client';
 
 interface ErrorResponseBody {
   error: {
@@ -54,6 +55,36 @@ export class HttpExceptionFilter implements ExceptionFilter {
       };
 
       response.status(status).json(errorBody);
+      return;
+    }
+
+    // Handle Prisma errors
+    if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      let status = HttpStatus.INTERNAL_SERVER_ERROR;
+      let code = 'DATABASE_ERROR';
+      let message = 'A database error occurred.';
+
+      if (exception.code === 'P2002') {
+        status = HttpStatus.CONFLICT;
+        code = 'CONFLICT';
+        const target = (exception.meta?.target as string[]) || [];
+        message = `Resource with this ${target.join(', ')} already exists.`;
+      } else if (exception.code === 'P2003') {
+        status = HttpStatus.BAD_REQUEST;
+        code = 'BAD_REQUEST';
+        message = 'Foreign key constraint failed.';
+      } else if (exception.code === 'P2025') {
+        status = HttpStatus.NOT_FOUND;
+        code = 'NOT_FOUND';
+        message = 'Resource not found.';
+      }
+
+      response.status(status).json({
+        error: {
+          code,
+          message,
+        },
+      } satisfies ErrorResponseBody);
       return;
     }
 
