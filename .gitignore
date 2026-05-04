@@ -21,9 +21,12 @@ lerna-debug.log*
 .env.local
 .env.*.local
 .env.production
+.env.integration
+.env.e2e
 
 # Testing
 /coverage/
+/test-results/
 /.nyc_output/
 
 # OS
