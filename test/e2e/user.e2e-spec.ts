@@ -2,12 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { PrismaService } from '../src/database/prisma.service';
-import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
+import { PrismaService } from '../../src/database/prisma.service';
+import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
 import { ConfigModule } from '@nestjs/config';
-import { DatabaseModule } from '../src/database/database.module';
-import { AuthModule } from '../src/modules/auth/auth.module';
-import { UserModule } from '../src/modules/user/user.module';
+import { DatabaseModule } from '../../src/database/database.module';
+import { AuthModule } from '../../src/modules/auth/auth.module';
+import { UserModule } from '../../src/modules/user/user.module';
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 

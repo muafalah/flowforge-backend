@@ -19,9 +19,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: flowforge_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: flowforge_e2e
         ports:
           - "5432:5432"
         options: >-
@@ -46,24 +46,26 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
         env:
-          DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/flowforge_e2e?schema=public
 
-      - name: Push Database Schema
-        run: npx prisma db push
-        env:
-          DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
+      - name: Setup Test Databases
+        run: npm run db:test:setup
 
       - name: Lint
         run: npm run lint
 
       - name: Run Unit Tests
-        run: npm run test
+        run: npm run test:unit
+
+      - name: Run Integration Tests
+        run: npm run test:integration
+        env:
+          JWT_SECRET: test_secret
 
       - name: Run E2E Tests
         if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
         run: npm run test:e2e
         env:
-          DATABASE_URL: postgresql://user:password@localhost:5432/flowforge_test
           JWT_SECRET: test_secret
 
       - name: Build
