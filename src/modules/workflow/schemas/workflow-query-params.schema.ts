@@ -13,8 +13,7 @@ export const workflowQueryParamsSchema = z.object({
     .max(100, 'Limit must be at most 100.')
     .default(10),
   search: z.string().optional(),
-  status: z.enum(['ACTIVE', 'DRAFT']).optional(),
-  sortBy: z.enum(['name', 'createdAt', 'status']).default('createdAt'),
+  sortBy: z.enum(['name', 'createdAt']).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });
 

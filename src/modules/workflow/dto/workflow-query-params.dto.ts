@@ -25,19 +25,12 @@ export class WorkflowQueryParamsDto {
   search?: string;
 
   @ApiPropertyOptional({
-    example: 'ACTIVE',
-    description: 'Filter by workflow status',
-    enum: ['ACTIVE', 'DRAFT'],
-  })
-  status?: 'ACTIVE' | 'DRAFT';
-
-  @ApiPropertyOptional({
     example: 'createdAt',
     description: 'Field to sort by',
-    enum: ['name', 'createdAt', 'status'],
+    enum: ['name', 'createdAt'],
     default: 'createdAt',
   })
-  sortBy!: 'name' | 'createdAt' | 'status';
+  sortBy!: 'name' | 'createdAt';
 
   @ApiPropertyOptional({
     example: 'desc',

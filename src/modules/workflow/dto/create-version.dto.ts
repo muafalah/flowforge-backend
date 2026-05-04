@@ -4,6 +4,16 @@ class DagNodeDto {
   @ApiProperty({ example: 'step1', description: 'Unique node identifier' })
   id!: string;
 
+  @ApiProperty({ example: 'Fetch User', description: 'Node name' })
+  name!: string;
+
+  @ApiProperty({
+    example: 'Fetches user data from API',
+    description: 'Optional node description',
+    required: false,
+  })
+  description?: string;
+
   @ApiProperty({
     example: 'http',
     description: 'Node type (e.g., http, script, transform)',
@@ -55,11 +65,18 @@ export class CreateVersionDto {
       nodes: [
         {
           id: 'step1',
+          name: 'Step 1',
+          description: 'First step',
           type: 'http',
           config: { url: 'https://api.example.com', method: 'GET' },
         },
-        { id: 'step2', type: 'script', config: { language: 'javascript' } },
-        { id: 'step3', type: 'transform' },
+        {
+          id: 'step2',
+          name: 'Step 2',
+          type: 'script',
+          config: { language: 'javascript' },
+        },
+        { id: 'step3', name: 'Step 3', type: 'transform' },
       ],
       edges: [
         { from: 'step1', to: 'step2' },

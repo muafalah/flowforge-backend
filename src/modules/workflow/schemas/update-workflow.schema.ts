@@ -11,7 +11,6 @@ export const updateWorkflowSchema = z.object({
     .max(500, 'Description must be at most 500 characters.')
     .nullable()
     .optional(),
-  status: z.enum(['ACTIVE', 'DRAFT']).optional(),
   access: z.enum(['EDITOR', 'VIEWER']).optional(),
 });
 

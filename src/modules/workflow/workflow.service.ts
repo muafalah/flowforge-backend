@@ -37,7 +37,6 @@ export class WorkflowService {
           organizationId: workflow.organizationId,
           name: workflow.name,
           description: workflow.description,
-          status: workflow.status,
           access: workflow.access,
           activeVersion: null,
           versionCount: workflow._count.versions,
@@ -50,7 +49,7 @@ export class WorkflowService {
   }
 
   async findAll(organizationId: string, query: WorkflowQueryParamsInput) {
-    const { page, limit, search, status, sortBy, sortOrder } = query;
+    const { page, limit, search, sortBy, sortOrder } = query;
     const skip = (page - 1) * limit;
 
     const where = {
@@ -59,15 +58,10 @@ export class WorkflowService {
       ...(search
         ? { name: { contains: search, mode: 'insensitive' as const } }
         : {}),
-      ...(status ? { status } : {}),
     };
 
     const orderBy =
-      sortBy === 'name'
-        ? { name: sortOrder }
-        : sortBy === 'status'
-          ? { status: sortOrder }
-          : { createdAt: sortOrder };
+      sortBy === 'name' ? { name: sortOrder } : { createdAt: sortOrder };
 
     const [workflows, total] = await this.prisma.$transaction([
       this.prisma.workflow.findMany({
@@ -95,7 +89,6 @@ export class WorkflowService {
         organizationId: wf.organizationId,
         name: wf.name,
         description: wf.description,
-        status: wf.status,
         access: wf.access,
         activeVersion: wf.activeVersion
           ? {
@@ -155,7 +148,6 @@ export class WorkflowService {
           organizationId: workflow.organizationId,
           name: workflow.name,
           description: workflow.description,
-          status: workflow.status,
           access: workflow.access,
           activeVersion: workflow.activeVersion
             ? {
@@ -205,7 +197,6 @@ export class WorkflowService {
         ...(dto.description !== undefined
           ? { description: dto.description }
           : {}),
-        ...(dto.status !== undefined ? { status: dto.status } : {}),
         ...(dto.access !== undefined ? { access: dto.access } : {}),
       },
       include: {
@@ -227,7 +218,6 @@ export class WorkflowService {
           organizationId: updated.organizationId,
           name: updated.name,
           description: updated.description,
-          status: updated.status,
           access: updated.access,
           activeVersion: updated.activeVersion
             ? {

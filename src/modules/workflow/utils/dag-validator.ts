@@ -4,6 +4,8 @@ import { z } from 'zod';
 
 export const dagNodeSchema = z.object({
   id: z.string().min(1, 'Node ID must not be empty.'),
+  name: z.string().min(1, 'Node name must not be empty.'),
+  description: z.string().optional(),
   type: z.string().min(1, 'Node type must not be empty.'),
   config: z.record(z.string(), z.unknown()).optional(),
 });

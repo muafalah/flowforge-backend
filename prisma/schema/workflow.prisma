@@ -1,7 +1,3 @@
-enum WorkflowStatus {
-  ACTIVE
-  DRAFT
-}
 
 enum WorkflowAccess {
   EDITOR
@@ -13,7 +9,6 @@ model Workflow {
   organizationId  String         @map("organization_id")
   name            String
   description     String?
-  status          WorkflowStatus @default(DRAFT)
   activeVersionId String?        @unique @map("active_version_id")
   access          WorkflowAccess @default(EDITOR)
   createdBy       String         @map("created_by")
@@ -27,7 +22,7 @@ model Workflow {
   versions      WorkflowVersion[] @relation("WorkflowVersions")
 
   @@index([organizationId])
-  @@index([organizationId, status])
+
   @@map("workflows")
 }
 

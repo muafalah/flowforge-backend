@@ -127,7 +127,6 @@ describe('Workflow & Versions (e2e)', () => {
 
       expect(res.body.message).toBe('Workflow created successfully.');
       expect(res.body.data.workflow.name).toBe('Data Pipeline');
-      expect(res.body.data.workflow.status).toBe('DRAFT');
       expect(res.body.data.workflow.organizationId).toBe(orgId);
     });
 
@@ -274,11 +273,10 @@ describe('Workflow & Versions (e2e)', () => {
       const res = await request(app.getHttpServer())
         .patch(`/v1/organizations/${orgId}/workflows/${workflowId}`)
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({ name: 'New Name', status: 'ACTIVE' })
+        .send({ name: 'New Name' })
         .expect(HttpStatus.OK);
 
       expect(res.body.data.workflow.name).toBe('New Name');
-      expect(res.body.data.workflow.status).toBe('ACTIVE');
     });
   });
 
@@ -642,47 +640,6 @@ describe('Workflow & Versions (e2e)', () => {
   // --- Additional edge cases ---
 
   describe('Additional edge-case scenarios', () => {
-    it('should filter workflows by status', async () => {
-      const { accessToken } = await registerAndLogin(ownerUser);
-      const orgId = await createOrg(accessToken, 'Test Org');
-
-      // Create two workflows
-      const wf1Res = await request(app.getHttpServer())
-        .post(`/v1/organizations/${orgId}/workflows`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ name: 'Draft WF' });
-      const wf1Id = wf1Res.body.data.workflow.id;
-
-      await request(app.getHttpServer())
-        .post(`/v1/organizations/${orgId}/workflows`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ name: 'Active WF' });
-
-      // Update first workflow to ACTIVE
-      await request(app.getHttpServer())
-        .patch(`/v1/organizations/${orgId}/workflows/${wf1Id}`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ status: 'ACTIVE' });
-
-      // Filter by ACTIVE
-      const activeRes = await request(app.getHttpServer())
-        .get(`/v1/organizations/${orgId}/workflows?status=ACTIVE`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(HttpStatus.OK);
-
-      expect(activeRes.body.data).toHaveLength(1);
-      expect(activeRes.body.data[0].status).toBe('ACTIVE');
-
-      // Filter by DRAFT
-      const draftRes = await request(app.getHttpServer())
-        .get(`/v1/organizations/${orgId}/workflows?status=DRAFT`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .expect(HttpStatus.OK);
-
-      expect(draftRes.body.data).toHaveLength(1);
-      expect(draftRes.body.data[0].status).toBe('DRAFT');
-    });
-
     it('should return 404 when updating a deleted workflow', async () => {
       const { accessToken } = await registerAndLogin(ownerUser);
       const orgId = await createOrg(accessToken, 'Test Org');

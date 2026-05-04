@@ -35,9 +35,6 @@ class WorkflowDataDto {
   @ApiPropertyOptional({ example: 'Syncs data on a schedule.' })
   description?: string | null;
 
-  @ApiProperty({ example: 'DRAFT', enum: ['ACTIVE', 'DRAFT'] })
-  status!: string;
-
   @ApiProperty({
     example: 'EDITOR',
     enum: ['EDITOR', 'VIEWER'],

@@ -17,13 +17,6 @@ export class UpdateWorkflowDto {
   description?: string | null;
 
   @ApiPropertyOptional({
-    example: 'ACTIVE',
-    description: 'Workflow status',
-    enum: ['ACTIVE', 'DRAFT'],
-  })
-  status?: 'ACTIVE' | 'DRAFT';
-
-  @ApiPropertyOptional({
     example: 'VIEWER',
     description:
       'Default access level for MEMBER role users. OWNER/ADMIN always have full access.',
