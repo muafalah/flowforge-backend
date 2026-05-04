@@ -8,6 +8,8 @@ model User {
   deletedAt    DateTime? @map("deleted_at")
   sessions              Session[]
   organizationMembers   OrganizationMember[]
+  workflows             Workflow[]
+  workflowVersions      WorkflowVersion[]
 
   @@map("users")
 }

@@ -12,6 +12,7 @@ model Organization {
   deletedAt DateTime? @map("deleted_at")
 
   organizationMembers OrganizationMember[]
+  workflows           Workflow[]
 
   @@map("organizations")
 }

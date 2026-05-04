@@ -1,0 +1,50 @@
+enum WorkflowStatus {
+  ACTIVE
+  DRAFT
+}
+
+enum WorkflowAccess {
+  EDITOR
+  VIEWER
+}
+
+model Workflow {
+  id              String         @id @default(uuid())
+  organizationId  String         @map("organization_id")
+  name            String
+  description     String?
+  status          WorkflowStatus @default(DRAFT)
+  activeVersionId String?        @unique @map("active_version_id")
+  access          WorkflowAccess @default(EDITOR)
+  createdBy       String         @map("created_by")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  deletedAt       DateTime?      @map("deleted_at")
+
+  organization  Organization      @relation(fields: [organizationId], references: [id])
+  creator       User              @relation(fields: [createdBy], references: [id])
+  activeVersion WorkflowVersion?  @relation("ActiveVersion", fields: [activeVersionId], references: [id])
+  versions      WorkflowVersion[] @relation("WorkflowVersions")
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@map("workflows")
+}
+
+model WorkflowVersion {
+  id         String   @id @default(uuid())
+  workflowId String   @map("workflow_id")
+  version    Int
+  definition Json
+  isActive   Boolean  @default(false) @map("is_active")
+  createdBy  String   @map("created_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  workflow          Workflow  @relation("WorkflowVersions", fields: [workflowId], references: [id])
+  activeForWorkflow Workflow? @relation("ActiveVersion")
+  creator           User     @relation(fields: [createdBy], references: [id])
+
+  @@unique([workflowId, version])
+  @@index([workflowId])
+  @@map("workflow_versions")
+}

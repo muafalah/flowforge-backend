@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { OrganizationModule } from './modules/organization/organization.module';
+import { WorkflowModule } from './modules/workflow/workflow.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { OrganizationModule } from './modules/organization/organization.module';
     AuthModule,
     UserModule,
     OrganizationModule,
+    WorkflowModule,
   ],
   controllers: [AppController],
   providers: [
