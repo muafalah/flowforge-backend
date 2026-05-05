@@ -344,9 +344,15 @@ export class WorkflowExecutionService {
           ? 'FAILED'
           : 'SUCCESS';
 
-      const run = await this.prisma.workflowRun.findUniqueOrThrow({
+      const run = await this.prisma.workflowRun.findUnique({
         where: { id: runId },
       });
+      if (!run) {
+        this.logger.warn(
+          `Run ${runId} not found, likely deleted during test cleanup`,
+        );
+        return;
+      }
       const durationMs = run.startedAt
         ? Date.now() - run.startedAt.getTime()
         : 0;

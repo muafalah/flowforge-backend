@@ -1,0 +1,15 @@
+--- test/e2e/workflow-run.e2e-spec.ts
++++ test/e2e/workflow-run.e2e-spec.ts
+@@ -87,7 +87,11 @@
+     await request(app.getHttpServer())
+       .post('/v1/auth/register')
+       .send(user)
+-      .expect(HttpStatus.CREATED);
++      .expect(HttpStatus.CREATED)
++      .catch(err => {
++        console.error('REGISTER ERROR:', err.response?.text || err);
++        throw err;
++      });
+     const res = await request(app.getHttpServer())
+       .post('/v1/auth/login')
+       .send({ email: user.email, password: user.password })
