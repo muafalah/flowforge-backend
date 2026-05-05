@@ -5,10 +5,12 @@ import { App } from 'supertest/types';
 import { PrismaService } from '../../src/database/prisma.service';
 import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
 import { ConfigModule } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
 import { DatabaseModule } from '../../src/database/database.module';
 import { AuthModule } from '../../src/modules/auth/auth.module';
 import { OrganizationModule } from '../../src/modules/organization/organization.module';
 import { ActivityLogModule } from '../../src/modules/activity-log/activity-log.module';
+import { ElasticsearchModule } from '../../src/modules/elasticsearch/elasticsearch.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -23,7 +25,14 @@ describe('Activity Logs (e2e)', () => {
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         EventEmitterModule.forRoot(),
+        BullModule.forRoot({
+          connection: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: parseInt(process.env.REDIS_PORT || '6379', 10),
+          },
+        }),
         DatabaseModule,
+        ElasticsearchModule,
         AuthModule,
         OrganizationModule,
         ActivityLogModule,
