@@ -5,10 +5,12 @@ import { App } from 'supertest/types';
 import { PrismaService } from '../../src/database/prisma.service';
 import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
 import { ConfigModule } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
 import { DatabaseModule } from '../../src/database/database.module';
 import { AuthModule } from '../../src/modules/auth/auth.module';
 import { OrganizationModule } from '../../src/modules/organization/organization.module';
 import { ActivityLogModule } from '../../src/modules/activity-log/activity-log.module';
+import { ElasticsearchModule } from '../../src/modules/elasticsearch/elasticsearch.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -23,7 +25,14 @@ describe('Activity Logs (e2e)', () => {
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         EventEmitterModule.forRoot(),
+        BullModule.forRoot({
+          connection: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: parseInt(process.env.REDIS_PORT || '6379', 10),
+          },
+        }),
         DatabaseModule,
+        ElasticsearchModule,
         AuthModule,
         OrganizationModule,
         ActivityLogModule,
@@ -40,6 +49,12 @@ describe('Activity Logs (e2e)', () => {
 
   beforeEach(async () => {
     await prisma.activityLog.deleteMany();
+    await prisma.workflowRunStep.deleteMany();
+    await prisma.workflowRun.deleteMany();
+    await prisma.cronJob.deleteMany();
+    await prisma.webhookTrigger.deleteMany();
+    await prisma.workflowVersion.deleteMany();
+    await prisma.workflow.deleteMany();
     await prisma.organizationMember.deleteMany();
     await prisma.organization.deleteMany();
     await prisma.session.deleteMany();
@@ -48,6 +63,12 @@ describe('Activity Logs (e2e)', () => {
 
   afterAll(async () => {
     await prisma.activityLog.deleteMany();
+    await prisma.workflowRunStep.deleteMany();
+    await prisma.workflowRun.deleteMany();
+    await prisma.cronJob.deleteMany();
+    await prisma.webhookTrigger.deleteMany();
+    await prisma.workflowVersion.deleteMany();
+    await prisma.workflow.deleteMany();
     await prisma.organizationMember.deleteMany();
     await prisma.organization.deleteMany();
     await prisma.session.deleteMany();
@@ -58,14 +79,14 @@ describe('Activity Logs (e2e)', () => {
   // --- Helpers ---
 
   const ownerUser = {
-    name: 'Owner User',
-    email: 'owner@email.com',
+    name: 'AL Owner',
+    email: 'al-owner@test.com',
     password: 'securepassword123',
   };
 
   const memberUser = {
-    name: 'Member User',
-    email: 'member@email.com',
+    name: 'AL Member',
+    email: 'al-member@test.com',
     password: 'securepassword123',
   };
 

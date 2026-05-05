@@ -44,9 +44,21 @@ export class WorkflowExecutionService {
 
     try {
       // 1. Load version definition
-      const version = await this.prisma.workflowVersion.findUniqueOrThrow({
+      const version = await this.prisma.workflowVersion.findUnique({
         where: { id: workflowVersionId },
       });
+
+      if (!version) {
+        this.logger.warn(
+          `Run ${runId}: WorkflowVersion ${workflowVersionId} not found`,
+        );
+        await this.failRun(
+          runId,
+          `Workflow version ${workflowVersionId} not found. It may have been deleted.`,
+        );
+        return;
+      }
+
       const definition = version.definition as unknown as DagDefinition;
 
       if (!definition?.nodes?.length) {

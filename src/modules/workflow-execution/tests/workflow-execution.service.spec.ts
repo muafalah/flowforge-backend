@@ -9,7 +9,7 @@ describe('WorkflowExecutionService', () => {
 
   const mockPrisma = {
     workflowVersion: {
-      findUniqueOrThrow: jest.fn(),
+      findUnique: jest.fn(),
     },
     workflowRun: {
       update: jest.fn(),
@@ -52,7 +52,7 @@ describe('WorkflowExecutionService', () => {
 
   // --- Helper to setup a version definition ---
   function setupDefinition(definition: DagDefinition) {
-    mockPrisma.workflowVersion.findUniqueOrThrow.mockResolvedValue({
+    mockPrisma.workflowVersion.findUnique.mockResolvedValue({
       id: 'ver-1',
       definition,
     });
@@ -168,7 +168,7 @@ describe('WorkflowExecutionService', () => {
     });
 
     it('should handle null definition gracefully', async () => {
-      mockPrisma.workflowVersion.findUniqueOrThrow.mockResolvedValue({
+      mockPrisma.workflowVersion.findUnique.mockResolvedValue({
         id: 'ver-1',
         definition: null,
       });

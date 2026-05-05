@@ -40,6 +40,10 @@ describe('Workflow & Versions (e2e)', () => {
 
   beforeEach(async () => {
     await prisma.activityLog.deleteMany();
+    await prisma.workflowRunStep.deleteMany();
+    await prisma.workflowRun.deleteMany();
+    await prisma.cronJob.deleteMany();
+    await prisma.webhookTrigger.deleteMany();
     await prisma.workflowVersion.deleteMany();
     await prisma.workflow.deleteMany();
     await prisma.organizationMember.deleteMany();
@@ -50,6 +54,10 @@ describe('Workflow & Versions (e2e)', () => {
 
   afterAll(async () => {
     await prisma.activityLog.deleteMany();
+    await prisma.workflowRunStep.deleteMany();
+    await prisma.workflowRun.deleteMany();
+    await prisma.cronJob.deleteMany();
+    await prisma.webhookTrigger.deleteMany();
     await prisma.workflowVersion.deleteMany();
     await prisma.workflow.deleteMany();
     await prisma.organizationMember.deleteMany();

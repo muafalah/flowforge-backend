@@ -86,4 +86,38 @@ export class WorkflowRunGateway
     const room = `workflow-run-updates:${workflowId}`;
     this.server.to(room).emit('run-complete', payload);
   }
+
+  /** Emit a run update to the org-level dashboard room */
+  emitDashboardRunUpdate(
+    organizationId: string,
+    payload: {
+      runId: string;
+      workflowId: string;
+      workflowName: string;
+      status: string;
+      triggerType: string;
+      durationMs?: number;
+      timestamp: string;
+    },
+  ) {
+    const room = `dashboard:${organizationId}`;
+    this.server.to(room).emit('dashboard-run-update', payload);
+  }
+
+  /** Emit an activity event to the org-level activity feed room */
+  emitActivityEvent(
+    organizationId: string,
+    payload: {
+      action: string;
+      targetType: string;
+      targetId?: string;
+      targetName?: string;
+      actorName?: string;
+      metadata?: Record<string, unknown>;
+      timestamp: string;
+    },
+  ) {
+    const room = `org-activity:${organizationId}`;
+    this.server.to(room).emit('activity-event', payload);
+  }
 }
