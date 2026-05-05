@@ -39,6 +39,7 @@ describe('Workflow & Versions (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.workflowVersion.deleteMany();
     await prisma.workflow.deleteMany();
     await prisma.organizationMember.deleteMany();
@@ -48,6 +49,7 @@ describe('Workflow & Versions (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.workflowVersion.deleteMany();
     await prisma.workflow.deleteMany();
     await prisma.organizationMember.deleteMany();

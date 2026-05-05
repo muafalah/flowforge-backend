@@ -52,6 +52,7 @@ describe('Workflow Runs (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.workflowRunStep.deleteMany();
     await prisma.workflowRun.deleteMany();
     await prisma.workflowVersion.deleteMany();
@@ -63,6 +64,7 @@ describe('Workflow Runs (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.workflowRunStep.deleteMany();
     await prisma.workflowRun.deleteMany();
     await prisma.workflowVersion.deleteMany();

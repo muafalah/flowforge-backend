@@ -54,6 +54,7 @@ describe('Webhooks (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.workflowRunStep.deleteMany();
     await prisma.workflowRun.deleteMany();
     await prisma.webhookTrigger.deleteMany();
@@ -66,6 +67,7 @@ describe('Webhooks (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.workflowRunStep.deleteMany();
     await prisma.workflowRun.deleteMany();
     await prisma.webhookTrigger.deleteMany();

@@ -38,11 +38,13 @@ describe('User Endpoints (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.session.deleteMany();
     await prisma.user.deleteMany();
   });
 
   afterAll(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.session.deleteMany();
     await prisma.user.deleteMany();
     await app.close();
