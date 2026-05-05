@@ -42,6 +42,7 @@
     "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.76.5",
+    "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
     "openai": "^6.36.0",
     "passport": "^0.7.0",

@@ -18,6 +18,7 @@ import { CronJobModule } from './modules/cron-job/cron-job.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
 import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 import { AiWorkflowModule } from './modules/ai-workflow/ai-workflow.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { AiWorkflowModule } from './modules/ai-workflow/ai-workflow.module';
     WebhookModule,
     ActivityLogModule,
     AiWorkflowModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

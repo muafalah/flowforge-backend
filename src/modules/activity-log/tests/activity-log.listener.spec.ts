@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ActivityLogListener } from '../activity-log.listener';
 import { ActivityLogService } from '../activity-log.service';
+import { WorkflowRunGateway } from '../../workflow-execution/workflow-run.gateway';
+import { PrismaService } from '../../../database/prisma.service';
 import { ACTIVITY_EVENTS } from '../activity-log.events';
 import type { ActivityLogEventPayload } from '../activity-log.events';
 
@@ -17,6 +19,20 @@ describe('ActivityLogListener', () => {
         {
           provide: ActivityLogService,
           useValue: { log: logSpy },
+        },
+        {
+          provide: WorkflowRunGateway,
+          useValue: {
+            emitActivityEvent: jest.fn(),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            user: {
+              findUnique: jest.fn().mockResolvedValue({ name: 'Test User' }),
+            },
+          },
         },
       ],
     }).compile();
