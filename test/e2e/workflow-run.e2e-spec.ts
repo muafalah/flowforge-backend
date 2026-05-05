@@ -88,14 +88,19 @@ describe('Workflow Runs (e2e)', () => {
     email: string;
     password: string;
   }) {
+    const uniqueEmail = `${Math.random().toString(36).substring(7)}-${user.email}`;
+    const uniqueUser = { ...user, email: uniqueEmail };
+
     await request(app.getHttpServer())
       .post('/v1/auth/register')
-      .send(user)
+      .send(uniqueUser)
       .expect(HttpStatus.CREATED);
+
     const res = await request(app.getHttpServer())
       .post('/v1/auth/login')
-      .send({ email: user.email, password: user.password })
+      .send({ email: uniqueUser.email, password: uniqueUser.password })
       .expect(HttpStatus.OK);
+
     return { accessToken: res.body.data.accessToken as string };
   }
 
@@ -127,14 +132,18 @@ describe('Workflow Runs (e2e)', () => {
     const wfRes = await request(app.getHttpServer())
       .post(`/v1/organizations/${orgId}/workflows`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Run Test WF' });
+      .send({ name: 'Run Test WF' })
+      .expect(HttpStatus.CREATED);
+
     const wfId = wfRes.body.data.workflow.id as string;
 
     // Create version
     const verRes = await request(app.getHttpServer())
       .post(`/v1/organizations/${orgId}/workflows/${wfId}/versions`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ definition: validDag });
+      .send({ definition: validDag })
+      .expect(HttpStatus.CREATED);
+
     const verId = verRes.body.data.version.id as string;
 
     // Activate version
