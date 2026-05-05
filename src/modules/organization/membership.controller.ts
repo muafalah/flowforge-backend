@@ -206,8 +206,9 @@ export class MembershipController {
   addMember(
     @Param('id') organizationId: string,
     @Body(new ZodValidationPipe(addMemberSchema)) dto: AddMemberDto,
+    @CurrentMember() currentMember: OrganizationMemberInfo,
   ) {
-    return this.membershipService.addMember(organizationId, dto);
+    return this.membershipService.addMember(organizationId, dto, currentMember);
   }
 
   @Patch(':memberId')
@@ -262,8 +263,14 @@ export class MembershipController {
     @Param('memberId') memberId: string,
     @Body(new ZodValidationPipe(updateMemberRoleSchema))
     dto: UpdateMemberRoleDto,
+    @CurrentMember() currentMember: OrganizationMemberInfo,
   ) {
-    return this.membershipService.updateRole(organizationId, memberId, dto);
+    return this.membershipService.updateRole(
+      organizationId,
+      memberId,
+      dto,
+      currentMember,
+    );
   }
 
   @Delete(':memberId')

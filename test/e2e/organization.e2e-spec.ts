@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from '../../src/database/database.module';
 import { AuthModule } from '../../src/modules/auth/auth.module';
 import { OrganizationModule } from '../../src/modules/organization/organization.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -20,6 +21,7 @@ describe('Organization & Membership (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
+        EventEmitterModule.forRoot(),
         DatabaseModule,
         AuthModule,
         OrganizationModule,
@@ -35,6 +37,7 @@ describe('Organization & Membership (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.organizationMember.deleteMany();
     await prisma.organization.deleteMany();
     await prisma.session.deleteMany();
@@ -42,6 +45,7 @@ describe('Organization & Membership (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.organizationMember.deleteMany();
     await prisma.organization.deleteMany();
     await prisma.session.deleteMany();

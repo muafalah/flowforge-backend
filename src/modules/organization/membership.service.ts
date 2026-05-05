@@ -1,15 +1,20 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { OrganizationRole } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../database/prisma.service';
 import { AddMemberInput } from './schemas/add-member.schema';
 import { UpdateMemberRoleInput } from './schemas/update-member-role.schema';
 import { TransferOwnershipInput } from './schemas/transfer-ownership.schema';
 import { QueryParamsInput } from './schemas/query-params.schema';
 import type { OrganizationMemberInfo } from '../../common/interfaces/request-user.interface';
+import { ACTIVITY_EVENTS } from '../activity-log/activity-log.events';
 
 @Injectable()
 export class MembershipService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async findAll(organizationId: string, query: QueryParamsInput) {
     const { page, limit, search, sortBy, sortOrder, roles } = query;
@@ -135,7 +140,11 @@ export class MembershipService {
     };
   }
 
-  async addMember(organizationId: string, dto: AddMemberInput) {
+  async addMember(
+    organizationId: string,
+    dto: AddMemberInput,
+    currentMember: OrganizationMemberInfo,
+  ) {
     // Find user by email
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email, deletedAt: null },
@@ -192,7 +201,7 @@ export class MembershipService {
       },
     });
 
-    return {
+    const result = {
       message: 'Member added successfully.',
       data: {
         member: {
@@ -207,12 +216,25 @@ export class MembershipService {
         },
       },
     };
+
+    this.eventEmitter.emit(ACTIVITY_EVENTS.MEMBER_ADDED, {
+      organizationId,
+      actorId: currentMember.userId,
+      action: ACTIVITY_EVENTS.MEMBER_ADDED,
+      targetType: 'member',
+      targetId: member.id,
+      targetName: member.user.email,
+      metadata: { role: member.role, memberName: member.user.name },
+    });
+
+    return result;
   }
 
   async updateRole(
     organizationId: string,
     memberId: string,
     dto: UpdateMemberRoleInput,
+    currentMember: OrganizationMemberInfo,
   ) {
     const member = await this.prisma.organizationMember.findFirst({
       where: { id: memberId, organizationId },
@@ -258,7 +280,7 @@ export class MembershipService {
       },
     });
 
-    return {
+    const result = {
       message: 'Member role updated successfully.',
       data: {
         member: {
@@ -273,6 +295,18 @@ export class MembershipService {
         },
       },
     };
+
+    this.eventEmitter.emit(ACTIVITY_EVENTS.MEMBER_ROLE_UPDATED, {
+      organizationId,
+      actorId: currentMember.userId,
+      action: ACTIVITY_EVENTS.MEMBER_ROLE_UPDATED,
+      targetType: 'member',
+      targetId: updated.id,
+      targetName: updated.user.email,
+      metadata: { oldRole: member.role, newRole: dto.role },
+    });
+
+    return result;
   }
 
   async removeMember(
@@ -355,6 +389,16 @@ export class MembershipService {
       where: { id: memberId },
     });
 
+    this.eventEmitter.emit(ACTIVITY_EVENTS.MEMBER_REMOVED, {
+      organizationId,
+      actorId: currentMember.userId,
+      action: ACTIVITY_EVENTS.MEMBER_REMOVED,
+      targetType: 'member',
+      targetId: memberId,
+      targetName: targetMember.userId,
+      metadata: { removedRole: targetMember.role },
+    });
+
     return {
       message: 'Member removed successfully.',
     };
@@ -404,6 +448,18 @@ export class MembershipService {
         data: { role: OrganizationRole.ADMIN },
       }),
     ]);
+
+    this.eventEmitter.emit(ACTIVITY_EVENTS.OWNERSHIP_TRANSFERRED, {
+      organizationId,
+      actorId: currentMember.userId,
+      action: ACTIVITY_EVENTS.OWNERSHIP_TRANSFERRED,
+      targetType: 'member',
+      targetId: targetMember.id,
+      metadata: {
+        previousOwnerId: currentMember.userId,
+        newOwnerId: targetMember.userId,
+      },
+    });
 
     return {
       message: 'Ownership transferred successfully.',

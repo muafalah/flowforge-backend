@@ -9,6 +9,7 @@ import { OrganizationService } from '../organization.service';
 import { MembershipService } from '../membership.service';
 import { AuthService } from '../../auth/auth.service';
 import { PrismaService } from '../../../database/prisma.service';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 /**
  * Integration tests for OrganizationService & MembershipService.
@@ -45,6 +46,7 @@ describe('Organization & Membership (integration)', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
+        EventEmitterModule.forRoot(),
         DatabaseModule,
         AuthModule,
         OrganizationModule,
@@ -80,6 +82,27 @@ describe('Organization & Membership (integration)', () => {
   }): Promise<string> {
     const result = await authService.register(user);
     return result.data.user.id;
+  }
+
+  /** Helper: get member info for service calls requiring currentMember */
+  async function getMemberInfo(
+    organizationId: string,
+    userId: string,
+  ): Promise<{
+    id: string;
+    organizationId: string;
+    userId: string;
+    role: string;
+  }> {
+    const member = await prisma.organizationMember.findFirst({
+      where: { organizationId, userId },
+    });
+    return {
+      id: member!.id,
+      organizationId: member!.organizationId,
+      userId: member!.userId,
+      role: member!.role,
+    };
   }
 
   // --- Organization CRUD Flow ---
@@ -149,9 +172,14 @@ describe('Organization & Membership (integration)', () => {
       const orgId = orgResult.data.organization.id;
 
       // 2. Add member
-      const addResult = await membershipService.addMember(orgId, {
-        email: memberUser.email,
-      });
+      const ownerMemberInfo = await getMemberInfo(orgId, ownerId);
+      const addResult = await membershipService.addMember(
+        orgId,
+        {
+          email: memberUser.email,
+        },
+        ownerMemberInfo,
+      );
       expect(addResult.data.member.role).toBe(OrganizationRole.MEMBER);
       expect(addResult.data.member.user.email).toBe(memberUser.email);
       const memberMemberId = addResult.data.member.id;
@@ -175,6 +203,7 @@ describe('Organization & Membership (integration)', () => {
         orgId,
         memberMemberId,
         { role: 'ADMIN' },
+        ownerMemberInfo,
       );
       expect(updateResult.data.member.role).toBe(OrganizationRole.ADMIN);
 
@@ -237,17 +266,31 @@ describe('Organization & Membership (integration)', () => {
       const orgId = orgResult.data.organization.id;
 
       // Add member and admin
-      const addMemberResult = await membershipService.addMember(orgId, {
-        email: memberUser.email,
-      });
-      const addAdminResult = await membershipService.addMember(orgId, {
-        email: adminUser.email,
-      });
+      const ownerMemberInfo = await getMemberInfo(orgId, ownerId);
+      const addMemberResult = await membershipService.addMember(
+        orgId,
+        {
+          email: memberUser.email,
+        },
+        ownerMemberInfo,
+      );
+      const addAdminResult = await membershipService.addMember(
+        orgId,
+        {
+          email: adminUser.email,
+        },
+        ownerMemberInfo,
+      );
 
       // Promote admin
-      await membershipService.updateRole(orgId, addAdminResult.data.member.id, {
-        role: 'ADMIN',
-      });
+      await membershipService.updateRole(
+        orgId,
+        addAdminResult.data.member.id,
+        {
+          role: 'ADMIN',
+        },
+        ownerMemberInfo,
+      );
 
       // Get owner membership info
       const ownerMembership = await prisma.organizationMember.findFirst({
@@ -301,11 +344,20 @@ describe('Organization & Membership (integration)', () => {
       });
       const orgId = orgResult.data.organization.id;
 
-      await membershipService.addMember(orgId, { email: memberUser.email });
+      const ownerMemberInfo = await getMemberInfo(orgId, ownerId);
+      await membershipService.addMember(
+        orgId,
+        { email: memberUser.email },
+        ownerMemberInfo,
+      );
 
       // Try adding again
       try {
-        await membershipService.addMember(orgId, { email: memberUser.email });
+        await membershipService.addMember(
+          orgId,
+          { email: memberUser.email },
+          ownerMemberInfo,
+        );
         fail('Expected HttpException');
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
@@ -324,15 +376,29 @@ describe('Organization & Membership (integration)', () => {
       });
       const orgId = orgResult.data.organization.id;
 
-      await membershipService.addMember(orgId, {
-        email: memberUser.email,
-      });
-      const addAdmin = await membershipService.addMember(orgId, {
-        email: adminUser.email,
-      });
-      await membershipService.updateRole(orgId, addAdmin.data.member.id, {
-        role: 'ADMIN',
-      });
+      const ownerMemberInfo = await getMemberInfo(orgId, ownerId);
+      await membershipService.addMember(
+        orgId,
+        {
+          email: memberUser.email,
+        },
+        ownerMemberInfo,
+      );
+      const addAdmin = await membershipService.addMember(
+        orgId,
+        {
+          email: adminUser.email,
+        },
+        ownerMemberInfo,
+      );
+      await membershipService.updateRole(
+        orgId,
+        addAdmin.data.member.id,
+        {
+          role: 'ADMIN',
+        },
+        ownerMemberInfo,
+      );
 
       // Filter by OWNER
       const ownersOnly = await membershipService.findAll(orgId, {
@@ -365,7 +431,12 @@ describe('Organization & Membership (integration)', () => {
       });
       const orgId = orgResult.data.organization.id;
 
-      await membershipService.addMember(orgId, { email: memberUser.email });
+      const ownerMemberInfo = await getMemberInfo(orgId, ownerId);
+      await membershipService.addMember(
+        orgId,
+        { email: memberUser.email },
+        ownerMemberInfo,
+      );
 
       // Search by owner name
       const searchResult = await membershipService.findAll(orgId, {

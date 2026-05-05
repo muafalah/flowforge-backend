@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { OrganizationRole } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { OrganizationService } from '../organization.service';
 import { PrismaService } from '../../../database/prisma.service';
 
@@ -26,6 +27,7 @@ describe('OrganizationService', () => {
       providers: [
         OrganizationService,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
       ],
     }).compile();
 
@@ -165,7 +167,11 @@ describe('OrganizationService', () => {
       mockPrismaService.organization.findFirst.mockResolvedValue(mockOrg);
       mockPrismaService.organization.update.mockResolvedValue(updatedOrg);
 
-      const result = await service.update('org-uuid', { name: 'New Name' });
+      const result = await service.update(
+        'org-uuid',
+        { name: 'New Name' },
+        'user-uuid',
+      );
 
       expect(result.message).toBe('Organization updated successfully.');
       expect(result.data.organization.name).toBe('New Name');
@@ -175,7 +181,7 @@ describe('OrganizationService', () => {
       mockPrismaService.organization.findFirst.mockResolvedValue(null);
 
       try {
-        await service.update('nonexistent', { name: 'New Name' });
+        await service.update('nonexistent', { name: 'New Name' }, 'user-uuid');
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
         const httpError = error as HttpException;
@@ -198,7 +204,7 @@ describe('OrganizationService', () => {
         deletedAt: new Date(),
       });
 
-      const result = await service.softDelete('org-uuid');
+      const result = await service.softDelete('org-uuid', 'user-uuid');
 
       expect(result.message).toBe('Organization deleted successfully.');
       expect(mockPrismaService.organization.update).toHaveBeenCalledWith({
@@ -211,7 +217,7 @@ describe('OrganizationService', () => {
       mockPrismaService.organization.findFirst.mockResolvedValue(null);
 
       try {
-        await service.softDelete('nonexistent');
+        await service.softDelete('nonexistent', 'user-uuid');
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
         const httpError = error as HttpException;

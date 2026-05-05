@@ -1,13 +1,21 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateVersionInput } from './schemas/create-version.schema';
 import { VersionQueryParamsInput } from './schemas/workflow-query-params.schema';
 import { validateDag } from './utils/dag-validator';
+import {
+  ACTIVITY_EVENTS,
+  type ActivityLogEventPayload,
+} from '../activity-log/activity-log.events';
 
 @Injectable()
 export class WorkflowVersionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async createVersion(
     organizationId: string,
@@ -91,6 +99,16 @@ export class WorkflowVersionService {
       },
     });
 
+    this.emitActivity({
+      organizationId,
+      actorId: userId,
+      action: ACTIVITY_EVENTS.VERSION_CREATED,
+      targetType: 'version',
+      targetId: version.id,
+      targetName: `v${version.version}`,
+      metadata: { workflowId, workflowName: workflow.name },
+    });
+
     return {
       message: 'Version created successfully.',
       data: {
@@ -106,6 +124,11 @@ export class WorkflowVersionService {
         },
       },
     };
+  }
+
+  /** Emit an activity log event (fire-and-forget). */
+  private emitActivity(payload: ActivityLogEventPayload): void {
+    this.eventEmitter.emit(payload.action, payload);
   }
 
   async findAllVersions(
@@ -177,8 +200,9 @@ export class WorkflowVersionService {
     organizationId: string,
     workflowId: string,
     versionId: string,
+    userId: string,
   ) {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       // Verify workflow exists and belongs to organization
       const workflow = await tx.workflow.findFirst({
         where: {
@@ -258,5 +282,17 @@ export class WorkflowVersionService {
         },
       };
     });
+
+    this.emitActivity({
+      organizationId,
+      actorId: userId,
+      action: ACTIVITY_EVENTS.VERSION_ACTIVATED,
+      targetType: 'version',
+      targetId: versionId,
+      targetName: `v${result.data.version.version}`,
+      metadata: { workflowId },
+    });
+
+    return result;
   }
 }

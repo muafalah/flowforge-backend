@@ -94,7 +94,10 @@ function executeJavaScript(
     };
 
     const context = vm.createContext(sandbox);
-    const result: unknown = vm.runInContext(script, context, {
+    // Wrap in IIFE so `return` works at top-level
+    // (matches frontend's new Function() behavior)
+    const wrappedScript = `(function() { ${script} })()`;
+    const result: unknown = vm.runInContext(wrappedScript, context, {
       timeout: timeoutMs,
       displayErrors: true,
     });
@@ -121,11 +124,28 @@ function executePython(
   finish: (success: boolean, output: unknown) => NodeRunResult,
 ): NodeRunResult {
   try {
-    const result: string = execSync(`python3 -c ${JSON.stringify(script)}`, {
-      timeout: timeoutMs,
-      encoding: 'utf-8',
-      maxBuffer: 1024 * 1024, // 1MB
-    });
+    // Wrap in function so `return` works at top-level
+    // (matches frontend's Pyodide wrapping behavior)
+    const indentedScript = script
+      .split('\n')
+      .map((line: string) => `    ${line}`)
+      .join('\n');
+    const wrappedScript = [
+      'def __user_fn__():',
+      indentedScript,
+      '__result__ = __user_fn__()',
+      'if __result__ is not None:',
+      '    print(__result__)',
+    ].join('\n');
+
+    const result: string = execSync(
+      `python3 -c ${JSON.stringify(wrappedScript)}`,
+      {
+        timeout: timeoutMs,
+        encoding: 'utf-8',
+        maxBuffer: 1024 * 1024, // 1MB
+      },
+    );
 
     const stdout = result.trim();
     if (stdout) {
@@ -152,7 +172,13 @@ function executeShell(
   finish: (success: boolean, output: unknown) => NodeRunResult,
 ): NodeRunResult {
   try {
-    const result: string = execSync(script, {
+    // Wrap in a bash function so `return` doesn't produce
+    // "return: can only `return` from a function" errors.
+    // Note: bash `return` only accepts integer exit codes (0-255),
+    // so `return 0` works but `return 4*4` needs `return $((4*4))`.
+    const wrappedScript = `__user_fn__() {\n${script}\n}\n__user_fn__`;
+
+    const result: string = execSync(wrappedScript, {
       timeout: timeoutMs,
       encoding: 'utf-8',
       shell: '/bin/bash',

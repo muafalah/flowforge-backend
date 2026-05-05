@@ -37,12 +37,14 @@ describe('Auth Endpoints (e2e)', () => {
 
   beforeEach(async () => {
     // Clean up test data before each test
+    await prisma.activityLog.deleteMany();
     await prisma.session.deleteMany();
     await prisma.user.deleteMany();
   });
 
   afterAll(async () => {
     // Final cleanup
+    await prisma.activityLog.deleteMany();
     await prisma.session.deleteMany();
     await prisma.user.deleteMany();
     await app.close();

@@ -69,7 +69,7 @@ describe('Node Executors', () => {
       const result = await executeScript(
         {
           language: 'javascript',
-          script: 'const x = 1 + 2; x;',
+          script: 'const x = 1 + 2; return x;',
           timeoutMs: 5000,
         },
         defaultContext,
@@ -93,6 +93,34 @@ describe('Node Executors', () => {
       expect(result.logs.some((l) => l.message.includes('hello world'))).toBe(
         true,
       );
+    });
+
+    it('should support top-level return statements in JavaScript', async () => {
+      const result = await executeScript(
+        {
+          language: 'javascript',
+          script: 'return 4 * 4',
+          timeoutMs: 5000,
+        },
+        defaultContext,
+      );
+
+      expect(result.status).toBe('SUCCESS');
+      expect((result.output as { result: unknown }).result).toBe(16);
+    });
+
+    it('should support multi-line scripts with return in JavaScript', async () => {
+      const result = await executeScript(
+        {
+          language: 'javascript',
+          script: 'const a = 5;\nconst b = 10;\nreturn a + b;',
+          timeoutMs: 5000,
+        },
+        defaultContext,
+      );
+
+      expect(result.status).toBe('SUCCESS');
+      expect((result.output as { result: unknown }).result).toBe(15);
     });
 
     it('should handle script errors', async () => {

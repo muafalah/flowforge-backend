@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { OrganizationRole } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { MembershipService } from '../membership.service';
 import { PrismaService } from '../../../database/prisma.service';
 
@@ -28,6 +29,7 @@ describe('MembershipService', () => {
       providers: [
         MembershipService,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
       ],
     }).compile();
 
@@ -176,6 +178,12 @@ describe('MembershipService', () => {
   describe('addMember', () => {
     const orgId = 'org-uuid';
     const dto = { email: 'jane@email.com' };
+    const currentMember = {
+      id: 'member-owner',
+      organizationId: orgId,
+      userId: 'user-owner',
+      role: OrganizationRole.OWNER,
+    };
 
     it('should add member successfully', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue({
@@ -194,7 +202,7 @@ describe('MembershipService', () => {
         user: { id: 'user-2', name: 'Jane', email: 'jane@email.com' },
       });
 
-      const result = await service.addMember(orgId, dto);
+      const result = await service.addMember(orgId, dto, currentMember);
 
       expect(result.message).toBe('Member added successfully.');
       expect(result.data.member.role).toBe(OrganizationRole.MEMBER);
@@ -204,7 +212,7 @@ describe('MembershipService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       try {
-        await service.addMember(orgId, dto);
+        await service.addMember(orgId, dto, currentMember);
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
         const httpError = error as HttpException;
@@ -227,7 +235,7 @@ describe('MembershipService', () => {
       });
 
       try {
-        await service.addMember(orgId, dto);
+        await service.addMember(orgId, dto, currentMember);
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
         const httpError = error as HttpException;
@@ -258,9 +266,19 @@ describe('MembershipService', () => {
         user: { id: 'user-2', name: 'Jane', email: 'jane@email.com' },
       });
 
-      const result = await service.updateRole(orgId, 'member-2', {
-        role: 'ADMIN',
-      });
+      const result = await service.updateRole(
+        orgId,
+        'member-2',
+        {
+          role: 'ADMIN',
+        },
+        {
+          id: 'member-owner',
+          organizationId: orgId,
+          userId: 'user-owner',
+          role: OrganizationRole.OWNER,
+        },
+      );
 
       expect(result.message).toBe('Member role updated successfully.');
       expect(result.data.member.role).toBe(OrganizationRole.ADMIN);
@@ -270,7 +288,17 @@ describe('MembershipService', () => {
       mockPrismaService.organizationMember.findFirst.mockResolvedValue(null);
 
       try {
-        await service.updateRole(orgId, 'nonexistent', { role: 'ADMIN' });
+        await service.updateRole(
+          orgId,
+          'nonexistent',
+          { role: 'ADMIN' },
+          {
+            id: 'member-owner',
+            organizationId: orgId,
+            userId: 'user-owner',
+            role: OrganizationRole.OWNER,
+          },
+        );
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
         const httpError = error as HttpException;
@@ -290,7 +318,17 @@ describe('MembershipService', () => {
       });
 
       try {
-        await service.updateRole(orgId, 'member-1', { role: 'MEMBER' });
+        await service.updateRole(
+          orgId,
+          'member-1',
+          { role: 'MEMBER' },
+          {
+            id: 'member-owner',
+            organizationId: orgId,
+            userId: 'user-owner',
+            role: OrganizationRole.OWNER,
+          },
+        );
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
         const httpError = error as HttpException;

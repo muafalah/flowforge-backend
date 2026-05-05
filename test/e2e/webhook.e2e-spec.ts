@@ -14,6 +14,7 @@ import { ElasticsearchModule } from '../../src/modules/elasticsearch/elasticsear
 import { WorkflowExecutionModule } from '../../src/modules/workflow-execution/workflow-execution.module';
 import { WorkflowRunModule } from '../../src/modules/workflow-run/workflow-run.module';
 import { WebhookModule } from '../../src/modules/webhook/webhook.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -26,6 +27,7 @@ describe('Webhooks (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
+        EventEmitterModule.forRoot(),
         BullModule.forRoot({
           connection: {
             host: process.env.REDIS_HOST || 'localhost',
@@ -52,6 +54,7 @@ describe('Webhooks (e2e)', () => {
   });
 
   beforeEach(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.workflowRunStep.deleteMany();
     await prisma.workflowRun.deleteMany();
     await prisma.webhookTrigger.deleteMany();
@@ -64,6 +67,7 @@ describe('Webhooks (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.activityLog.deleteMany();
     await prisma.workflowRunStep.deleteMany();
     await prisma.workflowRun.deleteMany();
     await prisma.webhookTrigger.deleteMany();

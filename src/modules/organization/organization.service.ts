@@ -1,13 +1,18 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { OrganizationRole } from '@prisma/client';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateOrganizationInput } from './schemas/create-organization.schema';
 import { UpdateOrganizationInput } from './schemas/update-organization.schema';
 import { QueryParamsInput } from './schemas/query-params.schema';
+import { ACTIVITY_EVENTS } from '../activity-log/activity-log.events';
 
 @Injectable()
 export class OrganizationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(userId: string, dto: CreateOrganizationInput) {
     const organization = await this.prisma.$transaction(async (tx) => {
@@ -122,7 +127,11 @@ export class OrganizationService {
     };
   }
 
-  async update(organizationId: string, dto: UpdateOrganizationInput) {
+  async update(
+    organizationId: string,
+    dto: UpdateOrganizationInput,
+    actorId: string,
+  ) {
     const organization = await this.prisma.organization.findFirst({
       where: { id: organizationId, deletedAt: null },
     });
@@ -144,7 +153,7 @@ export class OrganizationService {
       data: { name: dto.name },
     });
 
-    return {
+    const result = {
       message: 'Organization updated successfully.',
       data: {
         organization: {
@@ -155,9 +164,21 @@ export class OrganizationService {
         },
       },
     };
+
+    this.eventEmitter.emit(ACTIVITY_EVENTS.ORGANIZATION_UPDATED, {
+      organizationId,
+      actorId,
+      action: ACTIVITY_EVENTS.ORGANIZATION_UPDATED,
+      targetType: 'organization',
+      targetId: organizationId,
+      targetName: updated.name,
+      metadata: { oldName: organization.name, newName: updated.name },
+    });
+
+    return result;
   }
 
-  async softDelete(organizationId: string) {
+  async softDelete(organizationId: string, actorId: string) {
     const organization = await this.prisma.organization.findFirst({
       where: { id: organizationId, deletedAt: null },
     });
@@ -177,6 +198,15 @@ export class OrganizationService {
     await this.prisma.organization.update({
       where: { id: organizationId },
       data: { deletedAt: new Date() },
+    });
+
+    this.eventEmitter.emit(ACTIVITY_EVENTS.ORGANIZATION_DELETED, {
+      organizationId,
+      actorId,
+      action: ACTIVITY_EVENTS.ORGANIZATION_DELETED,
+      targetType: 'organization',
+      targetId: organizationId,
+      targetName: organization.name,
     });
 
     return {

@@ -16,6 +16,7 @@ model Organization {
   workflowRuns        WorkflowRun[]
   cronJobs            CronJob[]
   webhookTriggers     WebhookTrigger[]
+  activityLogs        ActivityLog[]
 
   @@map("organizations")
 }

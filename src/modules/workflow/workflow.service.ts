@@ -1,12 +1,17 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateWorkflowInput } from './schemas/create-workflow.schema';
 import { UpdateWorkflowInput } from './schemas/update-workflow.schema';
 import { WorkflowQueryParamsInput } from './schemas/workflow-query-params.schema';
+import { ACTIVITY_EVENTS } from '../activity-log/activity-log.events';
 
 @Injectable()
 export class WorkflowService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async create(
     organizationId: string,
@@ -29,7 +34,7 @@ export class WorkflowService {
       },
     });
 
-    return {
+    const result = {
       message: 'Workflow created successfully.',
       data: {
         workflow: {
@@ -46,6 +51,17 @@ export class WorkflowService {
         },
       },
     };
+
+    this.eventEmitter.emit(ACTIVITY_EVENTS.WORKFLOW_CREATED, {
+      organizationId,
+      actorId: userId,
+      action: ACTIVITY_EVENTS.WORKFLOW_CREATED,
+      targetType: 'workflow',
+      targetId: workflow.id,
+      targetName: workflow.name,
+    });
+
+    return result;
   }
 
   async findAll(organizationId: string, query: WorkflowQueryParamsInput) {
@@ -169,6 +185,7 @@ export class WorkflowService {
     organizationId: string,
     workflowId: string,
     dto: UpdateWorkflowInput,
+    actorId: string,
   ) {
     const workflow = await this.prisma.workflow.findFirst({
       where: {
@@ -210,7 +227,7 @@ export class WorkflowService {
       },
     });
 
-    return {
+    const result = {
       message: 'Workflow updated successfully.',
       data: {
         workflow: {
@@ -233,9 +250,24 @@ export class WorkflowService {
         },
       },
     };
+
+    this.eventEmitter.emit(ACTIVITY_EVENTS.WORKFLOW_UPDATED, {
+      organizationId,
+      actorId,
+      action: ACTIVITY_EVENTS.WORKFLOW_UPDATED,
+      targetType: 'workflow',
+      targetId: updated.id,
+      targetName: updated.name,
+    });
+
+    return result;
   }
 
-  async softDelete(organizationId: string, workflowId: string) {
+  async softDelete(
+    organizationId: string,
+    workflowId: string,
+    actorId: string,
+  ) {
     const workflow = await this.prisma.workflow.findFirst({
       where: {
         id: workflowId,
@@ -262,6 +294,15 @@ export class WorkflowService {
         deletedAt: new Date(),
         activeVersionId: null,
       },
+    });
+
+    this.eventEmitter.emit(ACTIVITY_EVENTS.WORKFLOW_DELETED, {
+      organizationId,
+      actorId,
+      action: ACTIVITY_EVENTS.WORKFLOW_DELETED,
+      targetType: 'workflow',
+      targetId: workflowId,
+      targetName: workflow.name,
     });
 
     return {
