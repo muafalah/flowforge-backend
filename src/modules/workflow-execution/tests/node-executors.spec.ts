@@ -28,7 +28,7 @@ describe('Node Executors', () => {
       expect(result.durationMs).toBeGreaterThan(0);
       expect(result.logs.length).toBeGreaterThan(0);
       expect((result.output as { statusCode: number }).statusCode).toBe(200);
-    });
+    }, 15000);
 
     it('should handle invalid URL gracefully', async () => {
       const result = await executeHttpCall(
@@ -42,7 +42,7 @@ describe('Node Executors', () => {
 
       expect(result.status).toBe('FAILED');
       expect(result.logs.some((l) => l.level === 'error')).toBe(true);
-    });
+    }, 10000);
 
     it('should interpolate variables in URL', async () => {
       const context: ExecutionContext = {
@@ -60,7 +60,7 @@ describe('Node Executors', () => {
       );
 
       expect(result.status).toBe('SUCCESS');
-    });
+    }, 15000);
   });
 
   // ── Script Execution ──
