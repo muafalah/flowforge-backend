@@ -13,6 +13,7 @@ describe('WorkflowExecutionService', () => {
     },
     workflowRun: {
       update: jest.fn(),
+      findUnique: jest.fn(),
       findUniqueOrThrow: jest.fn(),
     },
     workflowRunStep: {
@@ -59,6 +60,10 @@ describe('WorkflowExecutionService', () => {
     mockPrisma.workflowRunStep.create.mockResolvedValue({});
     mockPrisma.workflowRunStep.updateMany.mockResolvedValue({});
     mockPrisma.workflowRun.findUniqueOrThrow.mockResolvedValue({
+      id: 'run-1',
+      startedAt: new Date(),
+    });
+    mockPrisma.workflowRun.findUnique.mockResolvedValue({
       id: 'run-1',
       startedAt: new Date(),
     });
