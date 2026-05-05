@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ElasticsearchService } from '../elasticsearch.service';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from '@nestjs/common';
 import type { ExecutionLogEntry } from '../elasticsearch.service';
 
 // Mock the @elastic/elasticsearch Client
@@ -29,6 +30,12 @@ jest.mock('@elastic/elasticsearch', () => ({
 
 describe('ElasticsearchService', () => {
   let service: ElasticsearchService;
+
+  beforeAll(() => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    jest.spyOn(Logger.prototype, 'log').mockImplementation();
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
