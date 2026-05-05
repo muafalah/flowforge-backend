@@ -50,8 +50,12 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5432/flowforge?schema=pub
 REDIS_HOST="localhost"
 REDIS_PORT=6379
 JWT_SECRET="super-secret-jwt-key"
-JWT_EXPIRATION="1d"
+JWT_EXPIRATION="15m"
+JWT_REFRESH_SECRET="super-secret-refresh-key"
+JWT_REFRESH_EXPIRATION="7d"
 PORT=3000
+ELASTICSEARCH_URL="http://localhost:9200"
+GROQ_API_KEY=
 ```
 
 ### 3. Install Dependencies
