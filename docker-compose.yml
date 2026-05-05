@@ -11,6 +11,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/flowforge?schema=public
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
       - JWT_SECRET=super-secret-jwt-key
       - JWT_EXPIRATION=1d
       - PORT=3000
@@ -19,6 +20,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      elasticsearch:
+        condition: service_healthy
     command: >
       sh -c "npx prisma migrate deploy && npm run start:prod"
 
@@ -32,6 +35,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-test-dbs.sql:/docker-entrypoint-initdb.d/init-test-dbs.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d flowforge"]
       interval: 5s
@@ -45,6 +49,27 @@ services:
     volumes:
       - redis_data:/data
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
 volumes:
   postgres_data:
   redis_data:
+  elasticsearch_data:
+
