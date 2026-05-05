@@ -10,5 +10,7 @@
     "^src/(.*)$": "<rootDir>/../src/$1"
   },
   "maxWorkers": 1,
+  "testTimeout": 30000,
+  "forceExit": true,
   "setupFiles": ["<rootDir>/setup-e2e.ts"]
 }

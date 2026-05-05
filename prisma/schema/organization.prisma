@@ -12,6 +12,10 @@ model Organization {
   deletedAt DateTime? @map("deleted_at")
 
   organizationMembers OrganizationMember[]
+  workflows           Workflow[]
+  workflowRuns        WorkflowRun[]
+  cronJobs            CronJob[]
+  webhookTriggers     WebhookTrigger[]
 
   @@map("organizations")
 }
