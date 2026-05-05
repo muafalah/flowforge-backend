@@ -1,9 +1,14 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../database/prisma.service';
 import { ElasticsearchService } from '../elasticsearch/elasticsearch.service';
 import { WorkflowExecutionService } from '../workflow-execution/workflow-execution.service';
+import {
+  ACTIVITY_EVENTS,
+  type ActivityLogEventPayload,
+} from '../activity-log/activity-log.events';
 import type {
   RunQueryParamsInput,
   LogQueryParamsInput,
@@ -16,9 +21,15 @@ export class WorkflowRunService {
     private readonly prisma: PrismaService,
     private readonly elasticsearchService: ElasticsearchService,
     private readonly executionService: WorkflowExecutionService,
+    private readonly eventEmitter: EventEmitter2,
     @InjectQueue('workflow-execution')
     private readonly executionQueue: Queue<WorkflowRunJobData>,
   ) {}
+
+  /** Emit an activity log event (fire-and-forget). */
+  private emitActivity(payload: ActivityLogEventPayload): void {
+    this.eventEmitter.emit(payload.action, payload);
+  }
 
   /**
    * Trigger a manual workflow run.
@@ -82,6 +93,16 @@ export class WorkflowRunService {
     await this.executionQueue.add('execute-workflow', jobData, {
       removeOnComplete: 100,
       removeOnFail: 100,
+    });
+
+    this.emitActivity({
+      organizationId,
+      actorId: userId,
+      action: ACTIVITY_EVENTS.RUN_TRIGGERED,
+      targetType: 'run',
+      targetId: run.id,
+      targetName: workflow.name,
+      metadata: { triggerType: 'MANUAL', workflowId },
     });
 
     return {
@@ -269,7 +290,12 @@ export class WorkflowRunService {
   }
 
   /** Cancel a running workflow */
-  async cancel(organizationId: string, workflowId: string, runId: string) {
+  async cancel(
+    organizationId: string,
+    workflowId: string,
+    runId: string,
+    userId: string,
+  ) {
     const run = await this.prisma.workflowRun.findFirst({
       where: { id: runId, organizationId, workflowId },
     });
@@ -304,7 +330,45 @@ export class WorkflowRunService {
       data: { status: 'CANCELLED', finishedAt: new Date() },
     });
 
+    this.emitActivity({
+      organizationId,
+      actorId: userId,
+      action: ACTIVITY_EVENTS.RUN_CANCELLED,
+      targetType: 'run',
+      targetId: runId,
+      metadata: { workflowId },
+    });
+
     return { message: 'Run cancellation requested.' };
+  }
+
+  /**
+   * Emit a run status event. Called by the execution engine
+   * when a run completes, fails, or is cancelled.
+   */
+  emitRunStatusEvent(
+    organizationId: string,
+    workflowId: string,
+    runId: string,
+    workflowName: string,
+    status: 'completed' | 'failed',
+    actorId: string,
+    metadata?: Record<string, unknown>,
+  ) {
+    const action =
+      status === 'completed'
+        ? ACTIVITY_EVENTS.RUN_COMPLETED
+        : ACTIVITY_EVENTS.RUN_FAILED;
+
+    this.emitActivity({
+      organizationId,
+      actorId,
+      action,
+      targetType: 'run',
+      targetId: runId,
+      targetName: workflowName,
+      metadata: { workflowId, ...metadata },
+    });
   }
 
   /** Get execution logs from Elasticsearch */

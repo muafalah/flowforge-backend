@@ -258,8 +258,9 @@ export class OrganizationController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateOrganizationSchema))
     dto: UpdateOrganizationDto,
+    @CurrentUser() user: RequestUser,
   ) {
-    return this.organizationService.update(id, dto);
+    return this.organizationService.update(id, dto, user.userId);
   }
 
   @Delete(':id')
@@ -306,7 +307,7 @@ export class OrganizationController {
       },
     },
   })
-  remove(@Param('id') id: string) {
-    return this.organizationService.softDelete(id);
+  remove(@Param('id') id: string, @CurrentUser() user: RequestUser) {
+    return this.organizationService.softDelete(id, user.userId);
   }
 }

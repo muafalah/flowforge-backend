@@ -244,8 +244,14 @@ export class WorkflowController {
     @Param('organizationId') organizationId: string,
     @Param('workflowId') workflowId: string,
     @Body(new ZodValidationPipe(updateWorkflowSchema)) dto: UpdateWorkflowDto,
+    @CurrentUser() user: RequestUser,
   ) {
-    return this.workflowService.update(organizationId, workflowId, dto);
+    return this.workflowService.update(
+      organizationId,
+      workflowId,
+      dto,
+      user.userId,
+    );
   }
 
   @Delete(':workflowId')
@@ -299,7 +305,12 @@ export class WorkflowController {
   remove(
     @Param('organizationId') organizationId: string,
     @Param('workflowId') workflowId: string,
+    @CurrentUser() user: RequestUser,
   ) {
-    return this.workflowService.softDelete(organizationId, workflowId);
+    return this.workflowService.softDelete(
+      organizationId,
+      workflowId,
+      user.userId,
+    );
   }
 }

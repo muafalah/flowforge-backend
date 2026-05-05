@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkflowService } from '../workflow.service';
 import { PrismaService } from '../../../database/prisma.service';
 
@@ -22,6 +23,7 @@ describe('WorkflowService', () => {
       providers: [
         WorkflowService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
       ],
     }).compile();
     service = module.get<WorkflowService>(WorkflowService);
@@ -134,14 +136,19 @@ describe('WorkflowService', () => {
         creator: { id: 'u-1', name: 'J', email: 'j@t.com' },
         _count: { versions: 1 },
       });
-      const result = await service.update('org-1', 'wf-1', { name: 'New' });
+      const result = await service.update(
+        'org-1',
+        'wf-1',
+        { name: 'New' },
+        'u-1',
+      );
       expect(result.data.workflow.name).toBe('New');
     });
 
     it('should throw WORKFLOW_NOT_FOUND', async () => {
       mockPrisma.workflow.findFirst.mockResolvedValue(null);
       try {
-        await service.update('org-1', 'bad', { name: 'X' });
+        await service.update('org-1', 'bad', { name: 'X' }, 'u-1');
       } catch (e) {
         expect((e as HttpException).getStatus()).toBe(HttpStatus.NOT_FOUND);
       }
@@ -155,7 +162,7 @@ describe('WorkflowService', () => {
         deletedAt: null,
       });
       mockPrisma.workflow.update.mockResolvedValue({});
-      const result = await service.softDelete('org-1', 'wf-1');
+      const result = await service.softDelete('org-1', 'wf-1', 'u-1');
       expect(result.message).toBe('Workflow deleted successfully.');
       expect(mockPrisma.workflow.update).toHaveBeenCalledWith({
         where: { id: 'wf-1' },
@@ -166,7 +173,7 @@ describe('WorkflowService', () => {
     it('should throw WORKFLOW_NOT_FOUND', async () => {
       mockPrisma.workflow.findFirst.mockResolvedValue(null);
       try {
-        await service.softDelete('org-1', 'bad');
+        await service.softDelete('org-1', 'bad', 'u-1');
       } catch (e) {
         expect((e as HttpException).getStatus()).toBe(HttpStatus.NOT_FOUND);
       }

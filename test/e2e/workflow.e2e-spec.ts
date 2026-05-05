@@ -9,6 +9,7 @@ import { DatabaseModule } from '../../src/database/database.module';
 import { AuthModule } from '../../src/modules/auth/auth.module';
 import { OrganizationModule } from '../../src/modules/organization/organization.module';
 import { WorkflowModule } from '../../src/modules/workflow/workflow.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -21,6 +22,7 @@ describe('Workflow & Versions (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
+        EventEmitterModule.forRoot(),
         DatabaseModule,
         AuthModule,
         OrganizationModule,

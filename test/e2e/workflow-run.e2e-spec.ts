@@ -13,6 +13,7 @@ import { WorkflowModule } from '../../src/modules/workflow/workflow.module';
 import { ElasticsearchModule } from '../../src/modules/elasticsearch/elasticsearch.module';
 import { WorkflowExecutionModule } from '../../src/modules/workflow-execution/workflow-execution.module';
 import { WorkflowRunModule } from '../../src/modules/workflow-run/workflow-run.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -25,6 +26,7 @@ describe('Workflow Runs (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
+        EventEmitterModule.forRoot(),
         BullModule.forRoot({
           connection: {
             host: process.env.REDIS_HOST || 'localhost',

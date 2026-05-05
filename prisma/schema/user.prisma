@@ -13,6 +13,7 @@ model User {
   triggeredRuns         WorkflowRun[]      @relation("TriggeredRuns")
   createdCronJobs       CronJob[]          @relation("CronJobCreator")
   createdWebhooks       WebhookTrigger[]   @relation("WebhookCreator")
+  activityLogs          ActivityLog[]      @relation("ActivityLogs")
 
   @@map("users")
 }

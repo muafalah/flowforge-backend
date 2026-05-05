@@ -3,6 +3,7 @@ import { WorkflowRunService } from '../workflow-run.service';
 import { PrismaService } from '../../../database/prisma.service';
 import { ElasticsearchService } from '../../elasticsearch/elasticsearch.service';
 import { WorkflowExecutionService } from '../../workflow-execution/workflow-execution.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { getQueueToken } from '@nestjs/bullmq';
 import { HttpException } from '@nestjs/common';
 
@@ -42,6 +43,7 @@ describe('WorkflowRunService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: ElasticsearchService, useValue: mockElasticsearch },
         { provide: WorkflowExecutionService, useValue: mockExecutionService },
+        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
         {
           provide: getQueueToken('workflow-execution'),
           useValue: executionQueue,
@@ -156,7 +158,7 @@ describe('WorkflowRunService', () => {
       mockPrisma.workflowRun.update.mockResolvedValue({});
       mockExecutionService.cancelRun.mockReturnValue(true);
 
-      const result = await service.cancel('org-1', 'wf-1', 'run-1');
+      const result = await service.cancel('org-1', 'wf-1', 'run-1', 'user-1');
 
       expect(result.message).toBe('Run cancellation requested.');
       expect(mockExecutionService.cancelRun).toHaveBeenCalledWith('run-1');
@@ -165,9 +167,9 @@ describe('WorkflowRunService', () => {
     it('should throw if run not found', async () => {
       mockPrisma.workflowRun.findFirst.mockResolvedValue(null);
 
-      await expect(service.cancel('org-1', 'wf-1', 'invalid')).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        service.cancel('org-1', 'wf-1', 'invalid', 'user-1'),
+      ).rejects.toThrow(HttpException);
     });
 
     it('should throw if run is already completed', async () => {
@@ -176,9 +178,9 @@ describe('WorkflowRunService', () => {
         status: 'SUCCESS',
       });
 
-      await expect(service.cancel('org-1', 'wf-1', 'run-1')).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        service.cancel('org-1', 'wf-1', 'run-1', 'user-1'),
+      ).rejects.toThrow(HttpException);
     });
   });
 

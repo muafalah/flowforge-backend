@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkflowVersionService } from '../workflow-version.service';
 import { PrismaService } from '../../../database/prisma.service';
 
@@ -25,6 +26,7 @@ describe('WorkflowVersionService', () => {
       providers: [
         WorkflowVersionService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
       ],
     }).compile();
     service = module.get<WorkflowVersionService>(WorkflowVersionService);
@@ -249,7 +251,12 @@ describe('WorkflowVersionService', () => {
         async (cb: (tx: typeof txMock) => Promise<unknown>) => cb(txMock),
       );
 
-      const result = await service.activateVersion('org-1', 'wf-1', 'v-2');
+      const result = await service.activateVersion(
+        'org-1',
+        'wf-1',
+        'v-2',
+        'u-1',
+      );
 
       expect(result.message).toBe('Version activated successfully.');
       expect(result.data.version.isActive).toBe(true);
@@ -278,7 +285,7 @@ describe('WorkflowVersionService', () => {
       );
 
       try {
-        await service.activateVersion('org-1', 'wf-1', 'bad');
+        await service.activateVersion('org-1', 'wf-1', 'bad', 'u-1');
       } catch (e) {
         const err = e as HttpException;
         expect(err.getStatus()).toBe(HttpStatus.NOT_FOUND);

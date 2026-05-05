@@ -192,8 +192,14 @@ export class WorkflowRunController {
     @Param('organizationId') organizationId: string,
     @Param('workflowId') workflowId: string,
     @Param('runId') runId: string,
+    @CurrentUser() user: RequestUser,
   ) {
-    return this.runService.cancel(organizationId, workflowId, runId);
+    return this.runService.cancel(
+      organizationId,
+      workflowId,
+      runId,
+      user.userId,
+    );
   }
 
   @Get(':runId/logs')

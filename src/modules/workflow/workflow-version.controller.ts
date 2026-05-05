@@ -230,11 +230,13 @@ export class WorkflowVersionController {
     @Param('organizationId') organizationId: string,
     @Param('workflowId') workflowId: string,
     @Param('versionId') versionId: string,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.workflowVersionService.activateVersion(
       organizationId,
       workflowId,
       versionId,
+      user.userId,
     );
   }
 }
