@@ -49,6 +49,10 @@ describe('Activity Logs (e2e)', () => {
 
   beforeEach(async () => {
     await prisma.activityLog.deleteMany();
+    await prisma.workflowRunStep.deleteMany();
+    await prisma.workflowRun.deleteMany();
+    await prisma.workflowVersion.deleteMany();
+    await prisma.workflow.deleteMany();
     await prisma.organizationMember.deleteMany();
     await prisma.organization.deleteMany();
     await prisma.session.deleteMany();
@@ -57,6 +61,10 @@ describe('Activity Logs (e2e)', () => {
 
   afterAll(async () => {
     await prisma.activityLog.deleteMany();
+    await prisma.workflowRunStep.deleteMany();
+    await prisma.workflowRun.deleteMany();
+    await prisma.workflowVersion.deleteMany();
+    await prisma.workflow.deleteMany();
     await prisma.organizationMember.deleteMany();
     await prisma.organization.deleteMany();
     await prisma.session.deleteMany();
@@ -67,14 +75,14 @@ describe('Activity Logs (e2e)', () => {
   // --- Helpers ---
 
   const ownerUser = {
-    name: 'Owner User',
-    email: 'owner@email.com',
+    name: 'AL Owner',
+    email: 'al-owner@test.com',
     password: 'securepassword123',
   };
 
   const memberUser = {
-    name: 'Member User',
-    email: 'member@email.com',
+    name: 'AL Member',
+    email: 'al-member@test.com',
     password: 'securepassword123',
   };
 

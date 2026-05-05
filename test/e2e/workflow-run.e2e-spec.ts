@@ -64,19 +64,6 @@ describe('Workflow Runs (e2e)', () => {
   });
 
   afterAll(async () => {
-    // Wait for all active runs to finish to avoid leaking background jobs to other test suites
-    let activeRuns = await prisma.workflowRun.count({
-      where: { status: { in: ['PENDING', 'RUNNING'] } },
-    });
-    let attempts = 0;
-    while (activeRuns > 0 && attempts < 10) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      activeRuns = await prisma.workflowRun.count({
-        where: { status: { in: ['PENDING', 'RUNNING'] } },
-      });
-      attempts++;
-    }
-
     await prisma.activityLog.deleteMany();
     await prisma.workflowRunStep.deleteMany();
     await prisma.workflowRun.deleteMany();
