@@ -9,9 +9,9 @@ describe('DAG Validator', () => {
     it('should validate a simple valid DAG', () => {
       const definition: DagDefinition = {
         nodes: [
-          { id: 'step1', type: 'http' },
-          { id: 'step2', type: 'script' },
-          { id: 'step3', type: 'transform' },
+          { id: 'step1', name: 'Step 1', type: 'http' },
+          { id: 'step2', name: 'Step 2', type: 'script' },
+          { id: 'step3', name: 'Step 3', type: 'transform' },
         ],
         edges: [
           { from: 'step1', to: 'step2' },
@@ -28,7 +28,7 @@ describe('DAG Validator', () => {
 
     it('should validate a single-node DAG with no edges', () => {
       const definition: DagDefinition = {
-        nodes: [{ id: 'only', type: 'http' }],
+        nodes: [{ id: 'only', name: 'Only Node', type: 'http' }],
         edges: [],
       };
 
@@ -42,8 +42,8 @@ describe('DAG Validator', () => {
     it('should detect duplicate node IDs', () => {
       const definition: DagDefinition = {
         nodes: [
-          { id: 'step1', type: 'http' },
-          { id: 'step1', type: 'script' },
+          { id: 'step1', name: 'Step 1 A', type: 'http' },
+          { id: 'step1', name: 'Step 1 B', type: 'script' },
         ],
         edges: [],
       };
@@ -57,8 +57,8 @@ describe('DAG Validator', () => {
     it('should detect edges referencing non-existent source nodes', () => {
       const definition: DagDefinition = {
         nodes: [
-          { id: 'step1', type: 'http' },
-          { id: 'step2', type: 'script' },
+          { id: 'step1', name: 'Step 1', type: 'http' },
+          { id: 'step2', name: 'Step 2', type: 'script' },
         ],
         edges: [{ from: 'nonexistent', to: 'step2' }],
       };
@@ -74,8 +74,8 @@ describe('DAG Validator', () => {
     it('should detect edges referencing non-existent target nodes', () => {
       const definition: DagDefinition = {
         nodes: [
-          { id: 'step1', type: 'http' },
-          { id: 'step2', type: 'script' },
+          { id: 'step1', name: 'Step 1', type: 'http' },
+          { id: 'step2', name: 'Step 2', type: 'script' },
         ],
         edges: [{ from: 'step1', to: 'missing' }],
       };
@@ -90,7 +90,7 @@ describe('DAG Validator', () => {
 
     it('should detect self-loops', () => {
       const definition: DagDefinition = {
-        nodes: [{ id: 'step1', type: 'http' }],
+        nodes: [{ id: 'step1', name: 'Step 1', type: 'http' }],
         edges: [{ from: 'step1', to: 'step1' }],
       };
 
@@ -103,8 +103,8 @@ describe('DAG Validator', () => {
     it('should detect simple cycles (A → B → A)', () => {
       const definition: DagDefinition = {
         nodes: [
-          { id: 'A', type: 'http' },
-          { id: 'B', type: 'script' },
+          { id: 'A', name: 'A', type: 'http' },
+          { id: 'B', name: 'B', type: 'script' },
         ],
         edges: [
           { from: 'A', to: 'B' },
@@ -122,9 +122,9 @@ describe('DAG Validator', () => {
     it('should detect complex cycles (A → B → C → A)', () => {
       const definition: DagDefinition = {
         nodes: [
-          { id: 'A', type: 'http' },
-          { id: 'B', type: 'script' },
-          { id: 'C', type: 'transform' },
+          { id: 'A', name: 'A', type: 'http' },
+          { id: 'B', name: 'B', type: 'script' },
+          { id: 'C', name: 'C', type: 'transform' },
         ],
         edges: [
           { from: 'A', to: 'B' },
@@ -143,10 +143,10 @@ describe('DAG Validator', () => {
     it('should validate a diamond-shaped DAG', () => {
       const definition: DagDefinition = {
         nodes: [
-          { id: 'start', type: 'trigger' },
-          { id: 'left', type: 'http' },
-          { id: 'right', type: 'script' },
-          { id: 'merge', type: 'transform' },
+          { id: 'start', name: 'Start', type: 'trigger' },
+          { id: 'left', name: 'Left', type: 'http' },
+          { id: 'right', name: 'Right', type: 'script' },
+          { id: 'merge', name: 'Merge', type: 'transform' },
         ],
         edges: [
           { from: 'start', to: 'left' },
@@ -171,9 +171,9 @@ describe('DAG Validator', () => {
     it('should validate a DAG with multiple roots', () => {
       const definition: DagDefinition = {
         nodes: [
-          { id: 'root1', type: 'trigger' },
-          { id: 'root2', type: 'trigger' },
-          { id: 'sink', type: 'output' },
+          { id: 'root1', name: 'Root 1', type: 'trigger' },
+          { id: 'root2', name: 'Root 2', type: 'trigger' },
+          { id: 'sink', name: 'Sink', type: 'output' },
         ],
         edges: [
           { from: 'root1', to: 'sink' },
@@ -194,9 +194,9 @@ describe('DAG Validator', () => {
     it('should handle disconnected nodes', () => {
       const definition: DagDefinition = {
         nodes: [
-          { id: 'A', type: 'http' },
-          { id: 'B', type: 'script' },
-          { id: 'isolated', type: 'transform' },
+          { id: 'A', name: 'A', type: 'http' },
+          { id: 'B', name: 'B', type: 'script' },
+          { id: 'isolated', name: 'Isolated', type: 'transform' },
         ],
         edges: [{ from: 'A', to: 'B' }],
       };
@@ -211,9 +211,9 @@ describe('DAG Validator', () => {
   describe('topologicalSort', () => {
     it('should return correct execution order for a linear chain', () => {
       const nodes = [
-        { id: '1', type: 'a' },
-        { id: '2', type: 'b' },
-        { id: '3', type: 'c' },
+        { id: '1', name: '1', type: 'a' },
+        { id: '2', name: '2', type: 'b' },
+        { id: '3', name: '3', type: 'c' },
       ];
       const edges = [
         { from: '1', to: '2' },
@@ -226,8 +226,8 @@ describe('DAG Validator', () => {
 
     it('should return all nodes even with no edges', () => {
       const nodes = [
-        { id: 'A', type: 'x' },
-        { id: 'B', type: 'y' },
+        { id: 'A', name: 'A', type: 'x' },
+        { id: 'B', name: 'B', type: 'y' },
       ];
 
       const order = topologicalSort(nodes, []);

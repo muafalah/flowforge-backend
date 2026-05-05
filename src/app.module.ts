@@ -17,6 +17,7 @@ import { WorkflowRunModule } from './modules/workflow-run/workflow-run.module';
 import { CronJobModule } from './modules/cron-job/cron-job.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
 import { ActivityLogModule } from './modules/activity-log/activity-log.module';
+import { AiWorkflowModule } from './modules/ai-workflow/ai-workflow.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ActivityLogModule } from './modules/activity-log/activity-log.module';
     CronJobModule,
     WebhookModule,
     ActivityLogModule,
+    AiWorkflowModule,
   ],
   controllers: [AppController],
   providers: [
