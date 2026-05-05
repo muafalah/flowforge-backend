@@ -13,6 +13,9 @@ model Organization {
 
   organizationMembers OrganizationMember[]
   workflows           Workflow[]
+  workflowRuns        WorkflowRun[]
+  cronJobs            CronJob[]
+  webhookTriggers     WebhookTrigger[]
 
   @@map("organizations")
 }

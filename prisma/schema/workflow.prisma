@@ -16,10 +16,13 @@ model Workflow {
   updatedAt       DateTime       @updatedAt @map("updated_at")
   deletedAt       DateTime?      @map("deleted_at")
 
-  organization  Organization      @relation(fields: [organizationId], references: [id])
-  creator       User              @relation(fields: [createdBy], references: [id])
-  activeVersion WorkflowVersion?  @relation("ActiveVersion", fields: [activeVersionId], references: [id])
-  versions      WorkflowVersion[] @relation("WorkflowVersions")
+  organization    Organization      @relation(fields: [organizationId], references: [id])
+  creator         User              @relation(fields: [createdBy], references: [id])
+  activeVersion   WorkflowVersion?  @relation("ActiveVersion", fields: [activeVersionId], references: [id])
+  versions        WorkflowVersion[] @relation("WorkflowVersions")
+  runs            WorkflowRun[]
+  cronJobs        CronJob[]
+  webhookTriggers WebhookTrigger[]
 
   @@index([organizationId])
 
@@ -38,6 +41,7 @@ model WorkflowVersion {
   workflow          Workflow  @relation("WorkflowVersions", fields: [workflowId], references: [id])
   activeForWorkflow Workflow? @relation("ActiveVersion")
   creator           User     @relation(fields: [createdBy], references: [id])
+  runs              WorkflowRun[]
 
   @@unique([workflowId, version])
   @@index([workflowId])

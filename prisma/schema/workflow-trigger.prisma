@@ -1,0 +1,47 @@
+
+model CronJob {
+  id             String    @id @default(uuid())
+  organizationId String    @map("organization_id")
+  workflowId     String    @map("workflow_id")
+  name           String
+  description    String?
+  cronExpression String    @map("cron_expression")
+  timezone       String    @default("UTC")
+  isActive       Boolean   @default(true) @map("is_active")
+  lastRunAt      DateTime? @map("last_run_at")
+  nextRunAt      DateTime? @map("next_run_at")
+  createdBy      String    @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workflow     Workflow     @relation(fields: [workflowId], references: [id])
+  creator      User         @relation("CronJobCreator", fields: [createdBy], references: [id])
+
+  @@index([organizationId])
+  @@index([workflowId])
+  @@index([nextRunAt])
+  @@map("cron_jobs")
+}
+
+model WebhookTrigger {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  workflowId     String   @map("workflow_id")
+  name           String
+  description    String?
+  secret         String
+  urlPath        String   @unique @map("url_path")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdBy      String   @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workflow     Workflow     @relation(fields: [workflowId], references: [id])
+  creator      User         @relation("WebhookCreator", fields: [createdBy], references: [id])
+
+  @@index([organizationId])
+  @@index([workflowId])
+  @@map("webhook_triggers")
+}

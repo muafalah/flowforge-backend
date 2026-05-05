@@ -10,6 +10,9 @@ model User {
   organizationMembers   OrganizationMember[]
   workflows             Workflow[]
   workflowVersions      WorkflowVersion[]
+  triggeredRuns         WorkflowRun[]      @relation("TriggeredRuns")
+  createdCronJobs       CronJob[]          @relation("CronJobCreator")
+  createdWebhooks       WebhookTrigger[]   @relation("WebhookCreator")
 
   @@map("users")
 }

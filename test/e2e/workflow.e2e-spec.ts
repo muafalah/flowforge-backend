@@ -102,9 +102,9 @@ describe('Workflow & Versions (e2e)', () => {
 
   const validDag = {
     nodes: [
-      { id: 'step1', type: 'http' },
-      { id: 'step2', type: 'script' },
-      { id: 'step3', type: 'transform' },
+      { id: 'step1', name: 'Step 1', type: 'http' },
+      { id: 'step2', name: 'Step 2', type: 'script' },
+      { id: 'step3', name: 'Step 3', type: 'transform' },
     ],
     edges: [
       { from: 'step1', to: 'step2' },
@@ -364,8 +364,8 @@ describe('Workflow & Versions (e2e)', () => {
 
       const cyclicDag = {
         nodes: [
-          { id: 'A', type: 'http' },
-          { id: 'B', type: 'script' },
+          { id: 'A', name: 'Node A', type: 'http' },
+          { id: 'B', name: 'Node B', type: 'script' },
         ],
         edges: [
           { from: 'A', to: 'B' },
@@ -394,8 +394,8 @@ describe('Workflow & Versions (e2e)', () => {
 
       const dupDag = {
         nodes: [
-          { id: 'X', type: 'http' },
-          { id: 'X', type: 'script' },
+          { id: 'X', name: 'Node X', type: 'http' },
+          { id: 'X', name: 'Node X2', type: 'script' },
         ],
         edges: [],
       };
@@ -419,7 +419,7 @@ describe('Workflow & Versions (e2e)', () => {
       const wfId = wfRes.body.data.workflow.id;
 
       const badRefDag = {
-        nodes: [{ id: 'A', type: 'http' }],
+        nodes: [{ id: 'A', name: 'Node A', type: 'http' }],
         edges: [{ from: 'A', to: 'nonexistent' }],
       };
 
