@@ -35,8 +35,8 @@ describe('WorkflowVersionService', () => {
 
   const validDefinition = {
     nodes: [
-      { id: 'step1', type: 'http' },
-      { id: 'step2', type: 'script' },
+      { id: 'step1', name: 'Step 1', type: 'http' },
+      { id: 'step2', name: 'Step 2', type: 'script' },
     ],
     edges: [{ from: 'step1', to: 'step2' }],
   };
@@ -113,8 +113,8 @@ describe('WorkflowVersionService', () => {
 
       const cyclicDef = {
         nodes: [
-          { id: 'A', type: 'http' },
-          { id: 'B', type: 'script' },
+          { id: 'A', name: 'A', type: 'http' },
+          { id: 'B', name: 'B', type: 'script' },
         ],
         edges: [
           { from: 'A', to: 'B' },
@@ -146,8 +146,8 @@ describe('WorkflowVersionService', () => {
 
       const dupDef = {
         nodes: [
-          { id: 'X', type: 'http' },
-          { id: 'X', type: 'script' },
+          { id: 'X', name: 'X1', type: 'http' },
+          { id: 'X', name: 'X2', type: 'script' },
         ],
         edges: [],
       };

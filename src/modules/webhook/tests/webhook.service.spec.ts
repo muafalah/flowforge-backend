@@ -97,7 +97,6 @@ describe('WebhookService', () => {
       const result = await service.handleIncomingWebhook(
         'test-path',
         'valid-secret',
-        {},
       );
 
       expect(result.message).toBe('Webhook received. Run triggered.');
@@ -118,7 +117,7 @@ describe('WebhookService', () => {
       });
 
       await expect(
-        service.handleIncomingWebhook('test-path', 'wrong-secret', {}),
+        service.handleIncomingWebhook('test-path', 'wrong-secret'),
       ).rejects.toThrow(HttpException);
     });
 
@@ -136,7 +135,7 @@ describe('WebhookService', () => {
       });
 
       await expect(
-        service.handleIncomingWebhook('test-path', 'valid-secret', {}),
+        service.handleIncomingWebhook('test-path', 'valid-secret'),
       ).rejects.toThrow(HttpException);
     });
 
@@ -144,7 +143,7 @@ describe('WebhookService', () => {
       mockPrisma.webhookTrigger.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.handleIncomingWebhook('invalid', 'secret', {}),
+        service.handleIncomingWebhook('invalid', 'secret'),
       ).rejects.toThrow(HttpException);
     });
   });

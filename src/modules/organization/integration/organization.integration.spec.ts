@@ -135,13 +135,17 @@ describe('Organization & Membership (integration)', () => {
       expect(findResult.data.organization.memberCount).toBe(1);
 
       // 4. Update
-      const updateResult = await orgService.update(orgId, {
-        name: 'Updated Org',
-      });
+      const updateResult = await orgService.update(
+        orgId,
+        {
+          name: 'Updated Org',
+        },
+        userId,
+      );
       expect(updateResult.data.organization.name).toBe('Updated Org');
 
       // 5. Soft delete
-      const deleteResult = await orgService.softDelete(orgId);
+      const deleteResult = await orgService.softDelete(orgId, userId);
       expect(deleteResult.message).toBe('Organization deleted successfully.');
 
       // 6. Verify it's gone from findAll
